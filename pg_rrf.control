@@ -1,0 +1,6 @@
+comment = 'pg_rrf: RRF score fusion functions'
+default_version = '@CARGO_VERSION@'
+module_pathname = 'pg_rrf'
+relocatable = false
+superuser = true
+trusted = false
