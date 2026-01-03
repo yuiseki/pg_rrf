@@ -15,7 +15,7 @@ jobs:
       matrix:
         pg_major: [14, 15, 16, 17]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Test (pg${{ matrix.pg_major }})
         env:
           PG_MAJOR: ${{ matrix.pg_major }}
@@ -30,7 +30,7 @@ jobs:
       matrix:
         pg_major: [14, 15, 16, 17]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Package (pg${{ matrix.pg_major }})
         env:
           PG_MAJOR: ${{ matrix.pg_major }}
