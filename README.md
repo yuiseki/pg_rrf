@@ -2,6 +2,11 @@
 
 A PostgreSQL extension that provides Reciprocal Rank Fusion (RRF) functions for hybrid search score fusion.
 
+## Status
+
+- Version: v0.0.3
+- Scope: SPEC.md v0.0.3
+
 ## Features
 - `rrf(rank_a, rank_b, k)`
 - `rrf3(rank_a, rank_b, rank_c, k)`
@@ -12,6 +17,7 @@ A PostgreSQL extension that provides Reciprocal Rank Fusion (RRF) functions for 
 - `k <= 0` raises an error
 
 ## Requirements
+- PostgreSQL 14–17
 - Docker and Docker Compose v2
 
 Local PostgreSQL or Rust toolchains are not required. The Makefile always runs in Docker.
@@ -26,6 +32,19 @@ make build
 Run tests:
 ```
 make test
+```
+
+## Package (Docker)
+
+```
+make package
+```
+
+Artifacts are collected under `build/pg17` by default. To target a different
+PostgreSQL version:
+
+```
+PG_MAJOR=16 make package
 ```
 
 ## Using the Extension

@@ -1,0 +1,32 @@
+{
+  "name": "pg_rrf",
+  "version": "0.0.3",
+  "abstract": "Reciprocal Rank Fusion (RRF) functions for PostgreSQL",
+  "maintainer": "Yui Matsumura <yuiseki@gmail.com>",
+  "license": "mit",
+  "provides": {
+    "pg_rrf": {
+      "file": "src/lib.rs",
+      "version": "0.0.3",
+      "docfile": "README.md"
+    }
+  },
+  "tags": ["search", "ranking", "rrf", "fusion", "hybrid", "pgrx", "rust"],
+  "release_status": "testing",
+  "prereqs": {
+    "runtime": {
+      "requires": {
+        "PostgreSQL": "14.0.0"
+      }
+    }
+  },
+  "resources": {
+    "repository": {
+      "url": "https://github.com/yuiseki/pg_rrf.git",
+      "web": "https://github.com/yuiseki/pg_rrf",
+      "type": "git"
+    },
+    "bugtracker": { "web": "https://github.com/yuiseki/pg_rrf/issues" }
+  },
+  "meta-spec": { "version": "1.0.0" }
+}
