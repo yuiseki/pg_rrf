@@ -1,4 +1,8 @@
-FROM pgvector/pgvector:0.8.1-pg17-trixie AS builder
+ARG PG_MAJOR=17
+ARG PGVECTOR_VERSION=0.8.1
+ARG DEBIAN_SUITE=trixie
+
+FROM pgvector/pgvector:${PGVECTOR_VERSION}-pg${PG_MAJOR}-${DEBIAN_SUITE} AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive \
     CARGO_HOME=/cargo \
@@ -16,7 +20,7 @@ RUN set -eux; \
     pkg-config \
     libssl-dev \
     sudo \
-    postgresql-server-dev-17; \
+    postgresql-server-dev-${PG_MAJOR}; \
   rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
@@ -27,14 +31,17 @@ RUN set -eux; \
 WORKDIR /workspace
 COPY Cargo.toml Cargo.lock* ./
 COPY pg_rrf.control ./
-COPY src ./src
 
 RUN set -eux; \
   cargo install cargo-pgrx --version 0.16.1; \
-  cargo pgrx init --pg17 /usr/lib/postgresql/17/bin/pg_config; \
+  cargo pgrx init --pg${PG_MAJOR} /usr/lib/postgresql/${PG_MAJOR}/bin/pg_config
+
+COPY src ./src
+
+RUN set -eux; \
   cargo pgrx install --release
 
-FROM pgvector/pgvector:0.8.1-pg17-trixie
+FROM pgvector/pgvector:${PGVECTOR_VERSION}-pg${PG_MAJOR}-${DEBIAN_SUITE}
 
-COPY --from=builder /usr/lib/postgresql/17/lib/pg_rrf.so /usr/lib/postgresql/17/lib/
-COPY --from=builder /usr/share/postgresql/17/extension/pg_rrf* /usr/share/postgresql/17/extension/
+COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib/pg_rrf.so /usr/lib/postgresql/${PG_MAJOR}/lib/
+COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension/pg_rrf* /usr/share/postgresql/${PG_MAJOR}/extension/

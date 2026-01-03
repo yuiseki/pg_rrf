@@ -1,6 +1,11 @@
 services:
   db:
-    build: .
+    build:
+      context: .
+      args:
+        PG_MAJOR: ${PG_MAJOR:-17}
+        PGVECTOR_VERSION: ${PGVECTOR_VERSION:-0.8.1}
+        DEBIAN_SUITE: ${DEBIAN_SUITE:-trixie}
     container_name: pg_rrf
     ports:
       - "5436:5432"
@@ -14,6 +19,10 @@ services:
     build:
       context: .
       target: builder
+      args:
+        PG_MAJOR: ${PG_MAJOR:-17}
+        PGVECTOR_VERSION: ${PGVECTOR_VERSION:-0.8.1}
+        DEBIAN_SUITE: ${DEBIAN_SUITE:-trixie}
     working_dir: /workspace
     volumes:
       - .:/workspace

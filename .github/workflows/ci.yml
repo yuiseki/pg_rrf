@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pg_major: [14, 15, 16, 17]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test (pg${{ matrix.pg_major }})
+        env:
+          PG_MAJOR: ${{ matrix.pg_major }}
+        run: make test
+
+  package:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name != 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        pg_major: [14, 15, 16, 17]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package (pg${{ matrix.pg_major }})
+        env:
+          PG_MAJOR: ${{ matrix.pg_major }}
+        run: make package
+      - name: Upload package (pg${{ matrix.pg_major }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: pg_rrf-pg${{ matrix.pg_major }}
+          path: build/pg${{ matrix.pg_major }}
