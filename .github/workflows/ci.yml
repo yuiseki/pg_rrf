@@ -36,7 +36,7 @@ jobs:
           PG_MAJOR: ${{ matrix.pg_major }}
         run: make package
       - name: Upload package (pg${{ matrix.pg_major }})
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pg_rrf-pg${{ matrix.pg_major }}
           path: build/pg${{ matrix.pg_major }}
