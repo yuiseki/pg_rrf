@@ -6,6 +6,7 @@ A PostgreSQL extension that provides Reciprocal Rank Fusion (RRF) functions for 
 - `rrf(rank_a, rank_b, k)`
 - `rrf3(rank_a, rank_b, rank_c, k)`
 - `rrf_fuse(ids_a bigint[], ids_b bigint[], k int default 60)`
+- `rrfn(ranks bigint[], k int)`
 - NULL-safe: missing ranks are ignored
 - `rank <= 0` is ignored
 - `k <= 0` raises an error
@@ -44,6 +45,7 @@ Example queries:
 ```
 SELECT rrf(1, 2, 60) AS rrf_12;
 SELECT rrf3(1, 2, 3, 60) AS rrf_123;
+SELECT rrfn(ARRAY[1, 2, 3], 60) AS rrfn_123;
 SELECT * FROM rrf_fuse(ARRAY[10, 20, 30], ARRAY[20, 40], 60) ORDER BY score DESC;
 ```
 

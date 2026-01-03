@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 
 ::pgrx::pg_module_magic!(name, version);
 
-fn rrf_sum(ranks: &[Option<i64>], k: i64) -> Option<f64> {
+fn rrf_score(ranks: &[Option<i64>], k: i64) -> (f64, usize) {
     if k <= 0 {
         error!("rrf k must be positive");
     }
@@ -19,16 +19,28 @@ fn rrf_sum(ranks: &[Option<i64>], k: i64) -> Option<f64> {
         }
     }
 
+    (sum, used)
+}
+
+#[pg_extern]
+fn rrfn(ranks: Option<Vec<Option<i64>>>, k: i64) -> f64 {
+    let ranks = ranks.unwrap_or_default();
+    let (sum, used) = rrf_score(&ranks, k);
     if used == 0 {
-        None
+        0.0
     } else {
-        Some(sum)
+        sum
     }
 }
 
 #[pg_extern]
 fn rrf(rank_a: Option<i64>, rank_b: Option<i64>, k: i64) -> Option<f64> {
-    rrf_sum(&[rank_a, rank_b], k)
+    let score = rrfn(Some(vec![rank_a, rank_b]), k);
+    if score == 0.0 {
+        None
+    } else {
+        Some(score)
+    }
 }
 
 #[pg_extern]
@@ -38,7 +50,12 @@ fn rrf3(
     rank_c: Option<i64>,
     k: i64,
 ) -> Option<f64> {
-    rrf_sum(&[rank_a, rank_b, rank_c], k)
+    let score = rrfn(Some(vec![rank_a, rank_b, rank_c]), k);
+    if score == 0.0 {
+        None
+    } else {
+        Some(score)
+    }
 }
 
 #[pg_extern]
@@ -97,14 +114,10 @@ fn rrf_fuse(
     for id in ids.into_iter() {
         let rank_a = ranks_a.get(&id).copied();
         let rank_b = ranks_b.get(&id).copied();
-        let score = rrf_sum(
-            &[
-                rank_a.map(|r| r as i64),
-                rank_b.map(|r| r as i64),
-            ],
+        let score = rrfn(
+            Some(vec![rank_a.map(|r| r as i64), rank_b.map(|r| r as i64)]),
             k,
-        )
-        .unwrap_or(0.0);
+        );
         rows.push((id, score, rank_a, rank_b));
     }
 
@@ -155,6 +168,39 @@ mod tests {
         let score = rrf3(Some(1), Some(2), Some(3), 60).unwrap();
         let expected = 1.0 / 61.0 + 1.0 / 62.0 + 1.0 / 63.0;
         assert!((score - expected).abs() < 1e-12);
+    }
+
+    #[pg_test]
+    fn test_rrfn_matches_rrf() {
+        let score = rrfn(Some(vec![Some(1), Some(2)]), 60);
+        let expected = rrf(Some(1), Some(2), 60).unwrap();
+        assert!((score - expected).abs() < 1e-12);
+    }
+
+    #[pg_test]
+    fn test_rrfn_matches_rrf3() {
+        let score = rrfn(Some(vec![Some(1), Some(2), Some(3)]), 60);
+        let expected = rrf3(Some(1), Some(2), Some(3), 60).unwrap();
+        assert!((score - expected).abs() < 1e-12);
+    }
+
+    #[pg_test]
+    fn test_rrfn_ignores_nulls_and_non_positive() {
+        let score = rrfn(Some(vec![Some(1), None, Some(0), Some(-1), Some(3)]), 60);
+        let expected = 1.0 / 61.0 + 1.0 / 63.0;
+        assert!((score - expected).abs() < 1e-12);
+    }
+
+    #[pg_test]
+    fn test_rrfn_empty_array_returns_zero() {
+        let score = rrfn(Some(vec![]), 60);
+        assert!((score - 0.0).abs() < 1e-12);
+    }
+
+    #[pg_test]
+    #[should_panic(expected = "rrf k must be positive")]
+    fn test_rrfn_invalid_k() {
+        let _ = rrfn(Some(vec![Some(1)]), 0);
     }
 
     fn rows_to_map(
