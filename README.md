@@ -68,6 +68,58 @@ SELECT rrfn(ARRAY[1, 2, 3], 60) AS rrfn_123;
 SELECT * FROM rrf_fuse(ARRAY[10, 20, 30], ARRAY[20, 40], 60) ORDER BY score DESC;
 ```
 
+## Before/After (SQL for fusion)
+
+### Before: FULL OUTER JOIN + COALESCE
+
+```sql
+WITH
+  a AS (
+    SELECT id, row_number() OVER (ORDER BY bm25_score DESC) AS rank_a
+    FROM docs
+    ORDER BY bm25_score DESC
+    LIMIT 100
+  ),
+  b AS (
+    SELECT id, row_number() OVER (ORDER BY embedding <=> :qvec) AS rank_b
+    FROM docs
+    ORDER BY embedding <=> :qvec
+    LIMIT 100
+  ),
+  fused AS (
+    SELECT
+      COALESCE(a.id, b.id) AS id,
+      COALESCE(a.rank_a, NULL) AS rank_a,
+      COALESCE(b.rank_b, NULL) AS rank_b,
+      rrf(COALESCE(a.rank_a, NULL), COALESCE(b.rank_b, NULL), 60) AS score
+    FROM a
+    FULL OUTER JOIN b ON a.id = b.id
+  )
+SELECT d.*, fused.score
+FROM fused
+JOIN docs d USING (id)
+ORDER BY fused.score DESC
+LIMIT 20;
+```
+
+### After: `rrf_fuse`
+
+```sql
+WITH fused AS (
+  SELECT *
+  FROM rrf_fuse(
+    ARRAY(SELECT id FROM docs ORDER BY bm25_score DESC LIMIT 100),
+    ARRAY(SELECT id FROM docs ORDER BY embedding <=> :qvec LIMIT 100),
+    60
+  )
+)
+SELECT d.*, fused.score
+FROM fused
+JOIN docs d USING (id)
+ORDER BY fused.score DESC
+LIMIT 20;
+```
+
 Stop the database:
 ```
 docker compose down
