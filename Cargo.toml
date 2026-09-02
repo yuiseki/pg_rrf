@@ -21,7 +21,7 @@ pg18 = ["pgrx/pg18", "pgrx-tests/pg18"]
 pg_test = []
 
 [dependencies]
-pgrx = "0.16.1"
+pgrx = "0.19.0"
 
 [dev-dependencies]
 pgrx-tests = "0.16.1"
