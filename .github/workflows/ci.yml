@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg_major: [14, 15, 16, 17]
+        pg_major: [15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v6
       - name: Test (pg${{ matrix.pg_major }})
@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pg_major: [14, 15, 16, 17]
+        pg_major: [15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v6
       - name: Package (pg${{ matrix.pg_major }})

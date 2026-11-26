@@ -17,7 +17,7 @@ A PostgreSQL extension that provides Reciprocal Rank Fusion (RRF) functions for 
 - `k <= 0` raises an error
 
 ## Requirements
-- PostgreSQL 14–17
+- PostgreSQL 15–19
 - Docker and Docker Compose v2
 
 Local PostgreSQL or Rust toolchains are not required. The Makefile always runs in Docker.
