@@ -28,14 +28,14 @@ compose-build:
 	$(DOCKER_COMPOSE) build
 
 build: compose-build
-	$(DOCKER_COMPOSE) run --rm $(DEV_SERVICE) bash -lc "make build-in-container"
+	$(DOCKER_COMPOSE) run --rm $(DEV_SERVICE) make build-in-container
 
 test: compose-build
-	$(DOCKER_COMPOSE) run --rm $(DEV_SERVICE) bash -lc "make test-in-container"
+	$(DOCKER_COMPOSE) run --rm $(DEV_SERVICE) make test-in-container
 
 pgrx-init:
 	@if [ ! -d "$(PGRX_HOME)/pg$(PG_MAJOR)" ]; then \
-		cargo pgrx init --pg$(PG_MAJOR) $(PG_CONFIG); \
+		cargo pgrx init --pg$(PG_MAJOR) "$(PG_CONFIG)" --no-run; \
 	fi
 
 init-in-container: pgrx-init
@@ -57,7 +57,7 @@ test-in-container: init-in-container
 	cargo pgrx test pg$(PG_MAJOR) --runas postgres --pgdata $$pgdata
 
 package: compose-build
-	$(DOCKER_COMPOSE) run --rm $(DEV_SERVICE) bash -lc "make package-in-container"
+	$(DOCKER_COMPOSE) run --rm $(DEV_SERVICE) make package-in-container
 
 package-in-container: init-in-container
 	cargo pgrx package --pg-config $(PG_CONFIG)
